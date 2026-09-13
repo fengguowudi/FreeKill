@@ -3,11 +3,17 @@
 file(GLOB SWIG_FILES "${PROJECT_SOURCE_DIR}/src/swig/*.i")
 set(SWIG_SOURCE ${PROJECT_SOURCE_DIR}/src/swig/freekill.i)
 
+# swig 自带预处理：server-only 构建时把 FK_SERVER_ONLY 传进去，
+# .i 文件里的 GUI-only 包装函数（qt.i 的 addQmlImportPath）随之编译掉
+if (DEFINED FK_SERVER_ONLY)
+  set(SWIG_DEFINES -DFK_SERVER_ONLY)
+endif ()
+
 add_custom_command(
   OUTPUT ${PROJECT_SOURCE_DIR}/src/swig/freekill-wrap.cxx
   DEPENDS ${SWIG_FILES}
   COMMENT "Generating freekill-wrap.cxx"
-  COMMAND swig -c++ -lua -Wall -o
+  COMMAND swig -c++ -lua -Wall ${SWIG_DEFINES} -o
     ${PROJECT_SOURCE_DIR}/src/swig/freekill-wrap.cxx
     ${SWIG_SOURCE}
 )

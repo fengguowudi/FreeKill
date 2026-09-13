@@ -71,6 +71,9 @@ public:
   }
 }
 
+// GUI-only：server-only 构建中 QmlBackend 没有 getEngine()，整体编译掉
+// （swig 会对 .i 文件跑预处理；-DFK_SERVER_ONLY 由 CMake 按构建类型传入）
+#ifndef FK_SERVER_ONLY
 %native(addQmlImportPath) int addQmlImportPath(lua_State *L);
 %{
 static int addQmlImportPath(lua_State *L) {
@@ -89,4 +92,4 @@ static int addQmlImportPath(lua_State *L) {
   return 0;
 }
 %}
-
+#endif
