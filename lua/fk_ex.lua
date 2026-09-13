@@ -426,7 +426,7 @@ end
 ---@field name string 唯一标识符
 ---@field qml_path string | fun(player: Player, data: any): string 框的qml路径
 ---@field update_func? fun(player: ServerPlayer, data: any) 更新函数
----@field default_choice? fun(player: ServerPlayer, data: any): any 默认值函数 
+---@field default_choice? fun(player: ServerPlayer, data: any): any 默认值函数
 ---@field model? QmlComponent | fun(player: ServerPlayer, data: any): QmlComponent 给dataModel的model赋值，通常是一个table，里面是一些初始属性
 
 ---@class CardTipDataSpec

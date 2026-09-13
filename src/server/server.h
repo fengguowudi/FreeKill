@@ -67,7 +67,7 @@ public:
 
   Room *findRoom(int id) const; /// 获取对应id的房间
   Lobby *lobby() const; /// 获取大厅对象
-  
+
   TaskManager &task_manager() const;
 
   ServerPlayer *findPlayer(int id) const; /// 获取对应id的玩家

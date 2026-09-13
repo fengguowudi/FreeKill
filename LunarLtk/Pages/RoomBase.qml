@@ -736,7 +736,7 @@ W.PageBase {
     // console.log("handleInteractionRefresh", JSON.stringify(uiUpdate["Interaction"]));
     for (const dat of (uiUpdate["Interaction"] || [])) {
     const [type, refresh_data] = [dat.spec?.type, dat.refresh_data]
-      if (!type || !refresh_data) continue; 
+      if (!type || !refresh_data) continue;
     // 所有允许refresh_interaction的skillInteraction都要在这里把数据传到interaction里
 
     switch (type) {

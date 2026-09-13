@@ -546,7 +546,7 @@ QtObject {
         }
       }
     }
-    
+
     if (suc) {
       const extraData = skin.extra_data;
       return {

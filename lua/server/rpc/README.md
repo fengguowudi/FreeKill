@@ -59,7 +59,7 @@ L->call("InitScheduler", { QVariant::fromValue(thread) });
 L->call("HandleRequest", { bytes });
 return L->call("ResumeRoom", { roomId, reason }).toBool();
 ```
- 
+
 由此可见，传到lua的cpp内容只有一个`RoomThread *`而已，
 但有`thread->getRoom(id)`引申出room一堆，
 `room->getPlayers()`引申出player一堆，`player->doNotify`和`player->doRequest`引出网络通信。

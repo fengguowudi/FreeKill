@@ -440,7 +440,7 @@ RoomBase {
       anchors.horizontalCenter: progress.horizontalCenter
       spacing: 20
       visible: roomScene.dataModel.optionVisible
-      
+
       dataModel: roomScene.dataModel.options
     }
 
@@ -552,7 +552,7 @@ RoomBase {
     anchors.top: parent.top
     anchors.topMargin: 4
     anchors.right: parent.right
-    anchors.rightMargin: 4 
+    anchors.rightMargin: 4
     icon.sourceSize: Qt.size(32, 32)
     icon.source: Cpp.path + "/image/symbolic/actions/open-menu-symbolic.svg"
     icon.layer.enabled: true

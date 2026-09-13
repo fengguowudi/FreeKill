@@ -108,7 +108,7 @@ Item {
     Row {
       id: skinRow
       spacing: 6
-      
+
       Repeater {
         id: skinsRepeater
         model: [root.orig_general].concat(root.skins ?? [])
@@ -130,7 +130,7 @@ Item {
               } else {
                 root.selected_skin = parent.modelData;
               }
-              
+
               for (let i = 0; i < skinsRepeater.count; i++) {
                 if (i !== parent.index) {
                   skinsRepeater.itemAt(i).selected = false;

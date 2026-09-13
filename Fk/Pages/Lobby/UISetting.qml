@@ -48,7 +48,7 @@ W.PreferencePage {
         onCurrentValueChanged: {
           if (currentValue !== undefined) {
             Config.enabledUIPackages[modelData] = currentValue.name;
-          }  
+          }
         }
 
         Component.onCompleted: {

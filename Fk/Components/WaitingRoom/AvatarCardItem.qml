@@ -134,7 +134,7 @@ BasicItem {
         anchors.fill: parent
       }
     }
-    
+
 
     Rectangle {
       height: 16

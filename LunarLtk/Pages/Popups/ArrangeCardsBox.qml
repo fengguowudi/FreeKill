@@ -267,7 +267,7 @@ GraphicsBox {
 
         // 为什么这个排布卡牌的地方有个这样的逻辑？
         if (root.dataModel.poxiType !== "") {
-          card.selectable = Ltk.poxiFilter(root.dataModel.poxiType, card.dataModel.cardId, 
+          card.selectable = Ltk.poxiFilter(root.dataModel.poxiType, card.dataModel.cardId,
             [draggingCard?.dataModel.cardId], result, root.dataModel.origCards);
         } else if (root.dataModel.pattern !== ".") {
           card.selectable = Ltk.cardFitPattern(card.dataModel.cardId, root.dataModel.pattern);

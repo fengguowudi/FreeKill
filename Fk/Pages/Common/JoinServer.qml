@@ -422,7 +422,7 @@ Item {
     for (const server of list) {
       const addr = server.addr ?? "";
       const port = server.port ?? 0;
-      if (!addr || port <= 0) continue; 
+      if (!addr || port <= 0) continue;
       let exists = false;
       for (let i = 0; i < serverModel.count; i++) {
         const s = serverModel.get(i);

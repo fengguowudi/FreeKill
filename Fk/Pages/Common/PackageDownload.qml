@@ -247,7 +247,7 @@ W.PageBase {
     } else if (/Http/g.exec(errorMsg)) {
       return ["Network error", null];
     }
-  
+
     return [null, null];
   }
 }

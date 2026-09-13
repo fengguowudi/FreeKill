@@ -171,7 +171,7 @@ W.PageBase {
 
   function errorMessage(sender, data) {
     let log = Logic.translateErrorMsg(data);
-    
+
     console.log("ERROR: " + log);
     App.showToast(log, 5000);
     busy = false;

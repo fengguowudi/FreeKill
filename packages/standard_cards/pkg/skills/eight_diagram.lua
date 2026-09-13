@@ -32,7 +32,7 @@ skill:addEffect(fk.AskForCardUse, {
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(skill.name) and
         Exppattern:Parse(data.pattern):matchExp("jink|0|nosuit|none") and
-        not player:prohibitUse(Fk:cloneCard("jink")) 
+        not player:prohibitUse(Fk:cloneCard("jink"))
         and (data.extraData == {} or data.extraData.not_passive ~= true)
   end,
   on_use = spec,

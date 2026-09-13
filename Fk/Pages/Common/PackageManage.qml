@@ -300,7 +300,7 @@ W.PageBase {
 
   Component.onCompleted: {
     updatePackageList();
-  
+
     addCallback(Command.DownloadComplete, downloadComplete);
     addCallback(Command.PackageTransferProgress, showTransferProgress);
   }

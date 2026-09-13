@@ -483,9 +483,9 @@ function ServerRoomBase:handleSurrender(id, data)
 end
 
 --- 将房间中某个tag设为特定值。
---- 
+---
 --- 注意：客户端无法获取room tag，请改用```setBanner```
---- 
+---
 --- 当想在服务端搞点全局变量时，不要自己设置全局变量或者上值，而应该使用room的tag。
 ---@param tag_name string @ tag名字
 ---@param value any @ 值
@@ -506,11 +506,11 @@ function ServerRoomBase:removeTag(tag_name)
 end
 
 --- 将一名玩家的某种标记设置为某值，并通知所有客户端更新。
---- 
+---
 --- 值可以是数字、字符串、表、键值表等。注意键值表做值时键值表的键不能是数字。
---- 
+---
 --- 通用的mark名称及后缀参见`mark_enum.lua`。
---- 
+---
 -- mark name and UI:
 --
 -- ```xxx```: invisible mark
@@ -537,7 +537,7 @@ function ServerRoomBase:setPlayerMark(player, mark, value)
 end
 
 --- 将一名玩家的```mark```标记增加```count```个，并通知所有客户端更新。
---- 
+---
 --- tableMark有封装方法```addTableMark```和```addTableMarkIfNeed```
 ---@param player Base.Player @ 加标记的玩家
 ---@param mark string @ 标记名称
@@ -550,7 +550,7 @@ function ServerRoomBase:addPlayerMark(player, mark, count)
 end
 
 --- 将一名玩家的```mark```标记减少```count```个，并通知所有客户端更新。
---- 
+---
 --- tableMark有封装方法```removeTableMark```
 ---@param player Base.Player @ 减标记的玩家
 ---@param mark string @ 标记名称
@@ -563,7 +563,7 @@ function ServerRoomBase:removePlayerMark(player, mark, count)
 end
 
 --- 设置房间banner，显示于左上角，用于模式介绍、仁区等
---- 
+---
 --- 房间版mark
 ---@param name string @ banner的名称
 ---@param value any

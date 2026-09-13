@@ -62,7 +62,7 @@ Game.PokerCard {
   cardFrontSource: {
     const picName = dataModel.picName
     if (picName) {
-      if (picName.startsWith("general:")) 
+      if (picName.startsWith("general:"))
         return SkinBank.getGeneralPicture(picName.substring(8));
       if (picName.startsWith("path:"))
         return Cpp.path + "/" + picName.substring(5);
