@@ -70,6 +70,9 @@ add_test(
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
 
+# Spine 后端只在非 server-only 构建中编译进 libFreeKill（见 src/CMakeLists.txt），
+# server-only CI 下没有 createSpineBackend，整个测试跳过。
+if (NOT DEFINED FK_SERVER_ONLY)
 qt_add_executable(TestSpineSmoke spine_smoke_test.cpp)
 target_precompile_headers(TestSpineSmoke REUSE_FROM TestSocket)
 target_include_directories(TestSpineSmoke PRIVATE ${PROJECT_SOURCE_DIR}/src/ui/spine)
@@ -79,3 +82,4 @@ add_test(
   COMMAND TestSpineSmoke
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
+endif()
