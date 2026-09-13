@@ -31,8 +31,16 @@ using namespace fkShell;
 #endif
 
 #include <QTextStream>
-
-#if defined(Q_OS_ANDROID)
+#if defined(Q_OS_IOS)
+#include <QStandardPaths>
+// iOS 沙盒内只有 Documents 可写；启动即切过去，后续日志/数据库/资源都落在那里
+static void prepareForIOS() {
+  QString docs = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+  QDir().mkpath(docs);
+  QDir::setCurrent(docs);
+}
+#endif
+#if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
 static bool copyPath(const QString &srcFilePath, const QString &tgtFilePath) {
   QFileInfo srcFileInfo(srcFilePath);
   if (srcFileInfo.isDir()) {
@@ -69,7 +77,7 @@ static void installFkAssets(const QString &src, const QString &dest) {
       return;
     }
   }
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
   copyPath(src, dest);
 #elif defined(Q_OS_LINUX)
   system(QString("cp -r %1 %2/..").arg(src).arg(dest).toUtf8());
@@ -249,8 +257,9 @@ int freekill_main(int argc, char *argv[]) {
 
 #if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
   prepareForLinux();
+#elif defined(Q_OS_IOS)
+  prepareForIOS();  // 必须在打开日志文件之前切换目录（bundle 只读）
 #endif
-
   if (!log_file) {
     log_file.reset(new QFile("freekill.server.log"));
     if (!log_file->open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -393,8 +402,22 @@ int freekill_main(int argc, char *argv[]) {
   splash.showFullScreen();
   SHOW_SPLASH_MSG("Copying resources...");
   installFkAssets("assets:/res", QDir::currentPath());
+#elif defined(Q_OS_IOS)
+  QLocale l = QLocale::system();
+  auto localeName = l.name();
+
+  // iOS：资源在只读 bundle（<App>.app/res）内，按版本号复制到 Documents
+  // （prepareForIOS 已切目录，此处只负责显示 splash 并复制资源）
+  const QString resPath = QCoreApplication::applicationDirPath() + "/res";
+  QScreen *screen = qobject_cast<QApplication *>(app)->primaryScreen();
+  QRect screenGeometry = screen->geometry();
+  QSplashScreen splash(QPixmap(resPath + "/image/splash.jpg")
+                           .scaled(screenGeometry.width(), screenGeometry.height()));
+  splash.showFullScreen();
+  SHOW_SPLASH_MSG("Copying resources...");
+  installFkAssets(resPath, QDir::currentPath());
 #else
-  // 不是安卓，使用QLocale获得系统语言
+  // 不是安卓/iOS，使用QLocale获得系统语言
   QLocale l = QLocale::system();
   auto localeName = l.name();
 
@@ -406,7 +429,7 @@ int freekill_main(int argc, char *argv[]) {
   SHOW_SPLASH_MSG("Loading qml files...");
   engine = new QQmlApplicationEngine;
 
-#ifndef Q_OS_ANDROID
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
   QQuickStyle::setStyle("Material");
 #endif
 
@@ -476,6 +499,8 @@ int freekill_main(int argc, char *argv[]) {
   QString system;
 #if defined(Q_OS_ANDROID)
   system = QStringLiteral("Android");
+#elif defined(Q_OS_IOS)
+  system = QStringLiteral("iOS");
 #elif defined(Q_OS_WIN32)
   system = QStringLiteral("Win");
   SetConsoleOutputCP(CP_UTF8);

@@ -254,6 +254,12 @@ elseif (APPLE)
       XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.qtproject.FreeKill"
       XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO"
       XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2"
+      # “文件”App 可直接访问 Documents，方便用户手动装/删拓展包
+      XCODE_ATTRIBUTE_INFOPLIST_KEY_UIFileSharingEnabled "YES"
+      XCODE_ATTRIBUTE_INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace "YES"
+      # iOS 14+ 局域网联机需声明，否则自建房间监听会被系统拦截
+      XCODE_ATTRIBUTE_INFOPLIST_KEY_NSLocalNetworkUsageDescription "FreeKill 需要访问局域网以创建或加入房间"
+      XCODE_ATTRIBUTE_INFOPLIST_KEY_UISupportedInterfaceOrientations "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
     )
   else ()
     set(READLINE_LIB readline)

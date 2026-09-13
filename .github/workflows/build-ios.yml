@@ -112,9 +112,29 @@ jobs:
       working-directory: ${{github.workspace}}
       run: cmake --build ./build --config Release -j $(sysctl -n hw.ncpu)
 
+    - name: Assemble iOS resources
+      # 与 android/copy_assets.sh 同构：bundle 内的 res/ 在首启时复制到 Documents
+      working-directory: ${{github.workspace}}
+      run: |
+        LRELEASE=${Qt6_DIR}/../macos/bin/lrelease
+        $LRELEASE lang/zh_CN.ts
+        $LRELEASE lang/en_US.ts
+        $LRELEASE lang/vi_VN.ts
+        rm -rf res && mkdir -p res/packages res/server res/client res/certs
+        cp -r audio fonts image lua ltk LunarLtk Fk res/
+        cp -r packages/standard packages/standard_cards packages/maneuvering packages/test res/packages/
+        rm -f res/packages/test/test.lua
+        cp packages/*.sql res/packages/
+        cp server/*.sql res/server/
+        cp client/*.sql res/client/
+        cp LICENSE waiting_tips.txt fk_ver res/
+        cp lang/zh_CN.qm lang/en_US.qm lang/vi_VN.qm res/
+        curl -sL https://curl.se/ca/cacert.pem -o res/certs/cacert.pem
+
     - name: Package unsigned IPA
       working-directory: ${{github.workspace}}
       run: |
+        cp -r res build/Release-iphoneos/FreeKill.app/res
         mkdir -p Payload
         cp -r build/Release-iphoneos/FreeKill.app Payload/
         zip -qr FreeKill.ipa Payload

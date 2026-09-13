@@ -32,8 +32,11 @@ PackMan::PackMan(QObject *parent) : QObject(parent) {
     }
   }
 
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID)
   git_libgit2_opts(GIT_OPT_SET_SSL_CERT_LOCATIONS, NULL, "./certs");
+#elif defined(Q_OS_IOS)
+  // iOS 无系统 cert store，CI 打包时在 res/certs 里放 cacert.pem
+  git_libgit2_opts(GIT_OPT_SET_SSL_CERT_LOCATIONS, "./certs/cacert.pem", NULL);
 #endif
 }
 
