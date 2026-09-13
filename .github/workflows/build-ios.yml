@@ -61,7 +61,7 @@ jobs:
         tar xf ./lua-5.4.7.tar.gz
         cd lua-5.4.7/src
         ls *.c | grep -v -E '^(lua|luac)\.c$' | while read f; do
-          xcrun -sdk iphoneos clang -arch arm64 -O2 -mios-version-min=16.0 -c "$f"
+          xcrun -sdk iphoneos clang -arch arm64 -O2 -mios-version-min=16.0 -DLUA_USE_IOS -c "$f"
         done
         ar rcs liblua.a *.o
         rm -f *.o
