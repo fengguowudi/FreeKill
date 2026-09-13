@@ -1,7 +1,6 @@
 #ifndef _AUTH_H
 #define _AUTH_H
 
-#include <qtclasshelpermacros.h>
 class Server;
 class Sqlite3;
 class ClientSocket;
