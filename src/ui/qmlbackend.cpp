@@ -37,8 +37,8 @@ static void silenceFfmpegLogs();
 
 QmlBackend::QmlBackend(QObject *parent) : QObject(parent) {
   Backend = this;
-  m_quickStartMode = QStringLiteral("");
 #ifndef FK_SERVER_ONLY
+  m_quickStartMode = QStringLiteral("");
   // 尽早静默 FFmpeg 的控制台刷屏日志（Input #0, mov,mp4...）
   silenceFfmpegLogs();
   engine = nullptr;
