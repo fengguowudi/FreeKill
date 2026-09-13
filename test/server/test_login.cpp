@@ -1,7 +1,7 @@
 #include "globals.h"
 
 #include "server/server.h"
-#include "server/serverplayer.h"
+#include "server/user/serverplayer.h"
 #include "client/client.h"
 #include "network/client_socket.h"
 #include "network/router.h"

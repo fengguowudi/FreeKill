@@ -2,7 +2,7 @@
 #include "core/packman.h"
 #include "network/router.h"
 #include "server/server.h"
-#include "server/serverplayer.h"
+#include "server/user/serverplayer.h"
 #include "client/clientplayer.h"
 
 ushort test_port = 39527;
