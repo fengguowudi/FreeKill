@@ -1,0 +1,160 @@
+name: Build For iOS
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    name: Build iOS IPA (unsigned)
+    runs-on: macos-14
+
+    steps:
+
+    - name: Checkout Git Repo
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Install swig
+      run: brew install swig
+
+    - name: Build OpenSSL 3.1.8 for iOS
+      run: |
+        cd ..
+        wget --quiet https://github.com/openssl/openssl/releases/download/openssl-3.1.8/openssl-3.1.8.tar.gz
+        tar xf ./openssl-3.1.8.tar.gz
+        cd openssl-3.1.8
+        ./Configure ios64-xcrun no-shared no-tests
+        make -j$(sysctl -n hw.ncpu) build_libs
+
+    - name: Build libgit2 1.9.0 for iOS
+      run: |
+        cd ..
+        git clone https://github.com/libgit2/libgit2
+        cd libgit2
+        git checkout v1.9.0
+        mkdir build
+        cd build
+        SSL_DIR=$(pwd)/../../openssl-3.1.8
+        cmake .. -GXcode \
+          -DCMAKE_SYSTEM_NAME=iOS \
+          -DCMAKE_OSX_ARCHITECTURES=arm64 \
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=16.0 \
+          -DBUILD_SHARED_LIBS=OFF \
+          -DBUILD_TESTS=OFF \
+          -DBUILD_CLI=OFF \
+          -DUSE_HTTPS=OpenSSL \
+          -DUSE_SSH=OFF \
+          -DREGEX_BACKEND=builtin \
+          -DOPENSSL_INCLUDE_DIR="${SSL_DIR}/include" \
+          -DOPENSSL_CRYPTO_LIBRARY="${SSL_DIR}/libcrypto.a" \
+          -DOPENSSL_SSL_LIBRARY="${SSL_DIR}/libssl.a"
+        cmake --build . --config Release -j $(sysctl -n hw.ncpu)
+
+    - name: Build lua 5.4 for iOS
+      run: |
+        cd ..
+        wget --quiet https://www.lua.org/ftp/lua-5.4.7.tar.gz
+        tar xf ./lua-5.4.7.tar.gz
+        cd lua-5.4.7/src
+        ls *.c | grep -v -E '^(lua|luac)\.c$' | while read f; do
+          xcrun -sdk iphoneos clang -arch arm64 -O2 -mios-version-min=16.0 -c "$f"
+        done
+        ar rcs liblua.a *.o
+        rm -f *.o
+
+    - name: Install Qt for Host (macOS)
+      uses: jurplel/install-qt-action@v3
+      with:
+        aqtversion: '==3.1.*'
+        py7zrversion: '>=0.20.2'
+        version: '6.10.3'
+        host: 'mac'
+        target: 'desktop'
+        arch: 'clang_64'
+        modules: 'qtmultimedia qt5compat qtshadertools'
+
+    - name: Install Qt for iOS
+      uses: jurplel/install-qt-action@v3
+      with:
+        aqtversion: '==3.1.*'
+        py7zrversion: '>=0.20.2'
+        version: '6.10.3'
+        host: 'mac'
+        target: 'ios'
+        arch: 'ios'
+        modules: 'qtmultimedia qt5compat qtshadertools'
+
+    - name: Prepare headers
+      run: |
+        rm -rf include/libgit2 && cp -r ../libgit2/include include/libgit2
+
+    - name: Configure CMake Project
+      working-directory: ${{github.workspace}}
+      run: |
+        SSL_DIR=$(pwd)/../openssl-3.1.8
+        sed -i '' "s/LinguistTools/Linguist/g" CMakeLists.txt
+        ${Qt6_DIR}/bin/qt-cmake -S . -B ./build -GXcode \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=16.0 \
+          -DQT_HOST_PATH=${Qt6_DIR}/../macos \
+          -DOPENSSL_INCLUDE_DIR="${SSL_DIR}/include" \
+          -DOPENSSL_CRYPTO_LIBRARY="${SSL_DIR}/libcrypto.a" \
+          -DOPENSSL_SSL_LIBRARY="${SSL_DIR}/libssl.a" \
+          -DLUA_INCLUDE_DIR="$(pwd)/include/lua" \
+          -DLUA_LIBRARIES="$(pwd)/../lua-5.4.7/src/liblua.a" \
+          -DLIBGIT2_LIBRARY="$(pwd)/../libgit2/build/Release-iphoneos/libgit2.a"
+
+    - name: Build project
+      working-directory: ${{github.workspace}}
+      run: cmake --build ./build --config Release -j $(sysctl -n hw.ncpu)
+
+    - name: Package unsigned IPA
+      working-directory: ${{github.workspace}}
+      run: |
+        mkdir -p Payload
+        cp -r build/Release-iphoneos/FreeKill.app Payload/
+        zip -qr FreeKill.ipa Payload
+
+    - name: Upload IPA
+      uses: actions/upload-artifact@v4
+      with:
+        name: ipa
+        path: FreeKill.ipa
+
+  release:
+    name: Release IPA
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Git Repo
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Get Previous tag
+      id: previoustag
+      uses: WyriHaximus/github-action-get-previous-tag@v1
+      with:
+        fallback: 0.0.1
+
+    - name: Download IPA from build
+      uses: actions/download-artifact@v4
+      with:
+        name: ipa
+        path: ipa
+
+    - name: Rename IPA
+      run: |
+        mv ipa/FreeKill.ipa \
+          ipa/FreeKill-${{ steps.previoustag.outputs.tag }}-unsigned.ipa
+
+    - name: Upload Release IPA
+      uses: softprops/action-gh-release@v1
+      with:
+        token: ${{ secrets.MY_TOKEN }}
+        tag_name: ${{ steps.previoustag.outputs.tag }}
+        files: ipa/FreeKill-${{ steps.previoustag.outputs.tag }}-unsigned.ipa

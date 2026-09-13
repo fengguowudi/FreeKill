@@ -141,7 +141,7 @@ if (NOT DEFINED FK_SERVER_ONLY)
   # SoLoud 音频引擎（mp3/wav/flac 解码 + miniaudio 后端），用于播放短音效。
   # Android 不参与（Android 走 Java MediaPlayer）；soloudplayer.cpp 在无 SoLoud
   # 平台（FK_SERVER_ONLY / Android）编译为桩实现。
-  if (NOT ANDROID)
+  if (NOT ANDROID AND NOT IOS)  # iOS 同 Android 走桩实现（静态 Qt 下不引入 dylib）
     set(SOLOUD_ROOT "${PROJECT_SOURCE_DIR}/thirdparty/soloud")
     # SoLoud 编为动态库（soloud.dll），避免把整个引擎塞进 FreeKill.exe 增大体积
     add_library(soloud SHARED
@@ -243,26 +243,40 @@ elseif (APPLE)
   set(LUA_LIB ${LUA_LIBRARIES})
   set(SQLITE3_LIB sqlite3)
   set(CRYPTO_LIB OpenSSL::Crypto)
-  set(READLINE_LIB readline)
 
-  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/opt/homebrew/Cellar/libgit2")
-  find_package(PkgConfig)
-  if (PkgConfig_FOUND)
-    pkg_check_modules(LIBGIT2 libgit2)
-    if (LIBGIT2_FOUND)
-      message(STATUS "Found libgit2: ${LIBGIT2_LIBRARIES}")
+  if (IOS)
+    # iOS 交叉编译（见 .github/workflows/build-ios.yml）：
+    # 无 readline；OpenSSL/libgit2/lua 均静态，路径由 CMake -D 传入
+    set(SSL_LIB OpenSSL::SSL)
+    set(GIT_LIB ${LIBGIT2_LIBRARY} z iconv "-framework CoreFoundation" "-framework Security")
+    set_target_properties(FreeKill PROPERTIES
+      MACOSX_BUNDLE_BUNDLE_NAME FreeKill
+      XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.qtproject.FreeKill"
+      XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO"
+      XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2"
+    )
+  else ()
+    set(READLINE_LIB readline)
+
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/opt/homebrew/Cellar/libgit2")
+    find_package(PkgConfig)
+    if (PkgConfig_FOUND)
+      pkg_check_modules(LIBGIT2 libgit2)
+      if (LIBGIT2_FOUND)
+        message(STATUS "Found libgit2: ${LIBGIT2_LIBRARIES}")
+      else ()
+        message(WARNING "libgit2 not found, try to find libgit2 by CMake")
+        find_package(LibGit2)
+      endif ()
     else ()
-      message(WARNING "libgit2 not found, try to find libgit2 by CMake")
+      message(WARNING "PkgConfig not found, try to find libgit2 by CMake")
       find_package(LibGit2)
     endif ()
-  else ()
-    message(WARNING "PkgConfig not found, try to find libgit2 by CMake")
-    find_package(LibGit2)
+    set(GIT_LIB ${LIBGIT2_LIBRARIES})
+    target_link_directories(FreeKill PRIVATE
+      ${LIBGIT2_LIBRARY_DIRS}
+    )
   endif ()
-  set(GIT_LIB ${LIBGIT2_LIBRARIES})
-  target_link_directories(FreeKill PRIVATE
-    ${LIBGIT2_LIBRARY_DIRS}
-  )
 else ()
   set(LUA_LIB lua5.4)
   set(SQLITE3_LIB sqlite3)
