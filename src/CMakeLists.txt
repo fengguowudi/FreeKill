@@ -260,7 +260,18 @@ elseif (APPLE)
       # iOS 14+ 局域网联机需声明，否则自建房间监听会被系统拦截
       XCODE_ATTRIBUTE_INFOPLIST_KEY_NSLocalNetworkUsageDescription "FreeKill 需要访问局域网以创建或加入房间"
       XCODE_ATTRIBUTE_INFOPLIST_KEY_UISupportedInterfaceOrientations "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+      # 启动屏：消除无 storyboard 时的黑边/信箱式启动
+      XCODE_ATTRIBUTE_INFOPLIST_KEY_UILaunchStoryboardName "LaunchScreen"
     )
+    # storyboard 由 Xcode 构建系统自动编译（ibtool）；splash.jpg 放进 bundle 根供其引用
+    target_sources(FreeKill PRIVATE
+      "${PROJECT_SOURCE_DIR}/ios/LaunchScreen.storyboard"
+      "${PROJECT_SOURCE_DIR}/image/splash.jpg"
+    )
+    set_source_files_properties(
+      "${PROJECT_SOURCE_DIR}/ios/LaunchScreen.storyboard"
+      "${PROJECT_SOURCE_DIR}/image/splash.jpg"
+      PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
   else ()
     set(READLINE_LIB readline)
 
