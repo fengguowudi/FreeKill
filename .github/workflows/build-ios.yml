@@ -41,6 +41,7 @@ jobs:
         SSL_DIR=$(pwd)/../../openssl-3.1.8
         cmake .. -GXcode \
           -DCMAKE_SYSTEM_NAME=iOS \
+          -DCMAKE_OSX_SYSROOT=iphoneos \
           -DCMAKE_OSX_ARCHITECTURES=arm64 \
           -DCMAKE_OSX_DEPLOYMENT_TARGET=16.0 \
           -DBUILD_SHARED_LIBS=OFF \
@@ -53,6 +54,9 @@ jobs:
           -DOPENSSL_CRYPTO_LIBRARY="${SSL_DIR}/libcrypto.a" \
           -DOPENSSL_SSL_LIBRARY="${SSL_DIR}/libssl.a"
         cmake --build . --config Release -j $(sysctl -n hw.ncpu)
+        GIT2_A=$(find . -name 'libgit2.a' | head -n1)
+        test -n "$GIT2_A" || { echo 'libgit2.a not produced:'; find . -name '*.a'; exit 1; }
+        echo "libgit2.a at: $GIT2_A"
 
     - name: Build lua 5.4 for iOS
       run: |
@@ -96,6 +100,7 @@ jobs:
       working-directory: ${{github.workspace}}
       run: |
         SSL_DIR=$(pwd)/../openssl-3.1.8
+        GIT2_A=$(find ../libgit2/build -name 'libgit2.a' | head -n1)
         sed -i '' "s/LinguistTools/Linguist/g" CMakeLists.txt
         ${Qt6_DIR}/bin/qt-cmake -S . -B ./build -GXcode \
           -DCMAKE_BUILD_TYPE=Release \
@@ -106,7 +111,7 @@ jobs:
           -DOPENSSL_SSL_LIBRARY="${SSL_DIR}/libssl.a" \
           -DLUA_INCLUDE_DIR="$(pwd)/include/lua" \
           -DLUA_LIBRARIES="$(pwd)/../lua-5.4.7/src/liblua.a" \
-          -DLIBGIT2_LIBRARY="$(pwd)/../libgit2/build/Release-iphoneos/libgit2.a"
+          -DLIBGIT2_LIBRARY="$(pwd)/$GIT2_A"
 
     - name: Build project
       working-directory: ${{github.workspace}}
