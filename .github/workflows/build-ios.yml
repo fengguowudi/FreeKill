@@ -101,7 +101,8 @@ jobs:
       working-directory: ${{github.workspace}}
       run: |
         SSL_DIR=$(pwd)/../openssl-3.1.8
-        GIT2_A=$(find ../libgit2/build -name 'lib*git2.a' | head -n1)
+        # Xcode 版 libgit2 拆成多个静态库（liblibgit2/util/xdiff/llhttp/pcre/ntlmclient），全部都要链
+        GIT2_A=$(find "$(pwd)/../libgit2/build" -name '*.a' | paste -sd';' -)
         sed -i '' "s/LinguistTools/Linguist/g" CMakeLists.txt
         ${Qt6_DIR}/bin/qt-cmake -S . -B ./build -GXcode \
           -DCMAKE_BUILD_TYPE=Release \
@@ -112,7 +113,7 @@ jobs:
           -DOPENSSL_SSL_LIBRARY="${SSL_DIR}/libssl.a" \
           -DLUA_INCLUDE_DIR="$(pwd)/include/lua" \
           -DLUA_LIBRARIES="$(pwd)/../lua-5.4.7/src/liblua.a" \
-          -DLIBGIT2_LIBRARY="$(pwd)/$GIT2_A"
+          -DLIBGIT2_LIBRARY="$GIT2_A"
 
     - name: Build project
       working-directory: ${{github.workspace}}

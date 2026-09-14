@@ -66,6 +66,12 @@ if (DEFINED FK_USE_JEMALLOC)
 endif ()
 
 qt_add_executable(FreeKill)
+
+# iOS 静态 Qt 会默认链接 FFmpeg 多媒体后端插件，但 iOS 上没地方弄 FFmpeg 库；
+# iOS 实际使用 Darwin(AVFoundation) 后端，故排除 FFmpeg 插件防止链接失败
+if (IOS)
+  qt_import_plugins(FreeKill EXCLUDE Qt6::QFFmpegMediaPlugin)
+endif()
 link_directories(${LIBGIT2_LIBRARY_DIRS})
 
 if (NOT DEFINED FK_SERVER_ONLY)
