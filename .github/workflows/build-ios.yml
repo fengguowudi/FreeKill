@@ -54,7 +54,8 @@ jobs:
           -DOPENSSL_CRYPTO_LIBRARY="${SSL_DIR}/libcrypto.a" \
           -DOPENSSL_SSL_LIBRARY="${SSL_DIR}/libssl.a"
         cmake --build . --config Release -j $(sysctl -n hw.ncpu)
-        GIT2_A=$(find . -name 'libgit2.a' | head -n1)
+        # Xcode 生成器产物叫 liblibgit2.a，Makefile/Ninja 叫 libgit2.a
+        GIT2_A=$(find . -name 'lib*git2.a' | head -n1)
         test -n "$GIT2_A" || { echo 'libgit2.a not produced:'; find . -name '*.a'; exit 1; }
         echo "libgit2.a at: $GIT2_A"
 
@@ -100,7 +101,7 @@ jobs:
       working-directory: ${{github.workspace}}
       run: |
         SSL_DIR=$(pwd)/../openssl-3.1.8
-        GIT2_A=$(find ../libgit2/build -name 'libgit2.a' | head -n1)
+        GIT2_A=$(find ../libgit2/build -name 'lib*git2.a' | head -n1)
         sed -i '' "s/LinguistTools/Linguist/g" CMakeLists.txt
         ${Qt6_DIR}/bin/qt-cmake -S . -B ./build -GXcode \
           -DCMAKE_BUILD_TYPE=Release \
