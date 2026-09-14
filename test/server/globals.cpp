@@ -92,6 +92,7 @@ QJsonObject room_config = {
   { "enableFreeAssign", true },
   { "enableDeputy", false },
   { "generalNum", 5 },
+  { "generalTimeout", 30 },
   { "luckTime", 0 },
   { "password", "" },
   { "disabledPack", QJsonArray() },
