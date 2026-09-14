@@ -48,7 +48,7 @@ void TestLogin::testConnectToServer() {
   auto setup_packet = QCborValue::fromCbor(args[0].toByteArray()).toArray();
   auto setup_data = QCborValue::fromCbor(setup_packet[3].toByteArray()).toArray();
   // 格式应该是 [用户名，密文，md5，版本，uuid]
-  QCOMPARE(setup_data.count(), 5);
+  QCOMPARE(setup_data.size(), 5);
   QCOMPARE(setup_data[0].toString(), test_name);
   QCOMPARE(setup_data[2].toString(), ServerInstance->getMd5());
   QCOMPARE(setup_data[3].toString(), FK_VERSION);
@@ -62,7 +62,7 @@ void TestLogin::testConnectToServer() {
   QCOMPARE(args[0].toString(), "Setup");
   auto login_data = QCborValue::fromCbor(args[1].toByteArray()).toArray();
   // 格式应该是 [id，用户名，头像，延迟]
-  QCOMPARE(login_data.count(), 4);
+  QCOMPARE(login_data.size(), 4);
   QVERIFY(login_data[0].isInteger());
   QCOMPARE(login_data[1].toString(), test_name);
   args = spy.takeFirst();

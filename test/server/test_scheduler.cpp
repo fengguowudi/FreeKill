@@ -94,7 +94,7 @@ void TestScheduler::testReconnect() {
   QCOMPARE(args[0].toString(), "Setup");
   auto setup_data = QCborValue::fromCbor(args[1].toByteArray()).toArray();
   // 格式应该是 [id，用户名，头像，延迟] 只检查是不是设置延迟了（一定要有）
-  QCOMPARE(setup_data.count(), 4);
+  QCOMPARE(setup_data.size(), 4);
   args = spy2[2];
   QCOMPARE(args[0].toString(), "Reconnect");
 }

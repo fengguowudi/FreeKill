@@ -50,7 +50,7 @@ void TestRoom::testCreateRoom() {
   while (spy.count() < 3) QVERIFY(spy.wait());
   args = spy.takeFirst();
   auto arr = QCborValue::fromCbor(args[1].toByteArray()).toArray();
-  QCOMPARE(arr.count(), 3);
+  QCOMPARE(arr.size(), 3);
   QCOMPARE(arr[0].toInteger(), qint64(2));
   QCOMPARE(arr[1].toInteger(), qint64(90));
   QCOMPARE(arr[2].toMap(), QCborMap::fromJsonObject(room_config));
