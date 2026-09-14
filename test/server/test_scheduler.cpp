@@ -42,7 +42,6 @@ void TestScheduler::testStartGame() {
   QSignalSpy spy(client->getRouter(), &Router::notification_got);
   QSignalSpy spy2(client2->getRouter(), &Router::notification_got);
   QSignalSpy spy3(client3->getRouter(), &Router::notification_got);
-  QVariantList args;
 
   client->notifyServer("CreateRoom", QVariantList({
     QStringLiteral("test_room2"), 2, 90, room_config.toVariantMap(),
@@ -56,13 +55,16 @@ void TestScheduler::testStartGame() {
 
   auto room = ServerInstance->findRoom(1);
   auto thread = qobject_cast<RoomThread *>(room->parent());
-  QSignalSpy spy_roomthread(thread, &RoomThread::pushRequest);
+  // pushRequest由服务端线程发出，QSignalSpy跨线程捕捉信号不可靠（会偶发漏信号），
+  // 改用queued连接的lambda接收
+  QString pushed_req;
+  connect(thread, &RoomThread::pushRequest, this,
+          [&pushed_req](const QString &req) { pushed_req = req; });
 
   // 下一步c1发出StartGame命令
   client->notifyServer("StartGame", "");
-  QVERIFY(spy_roomthread.wait());
-  args = spy_roomthread.takeFirst();
-  QCOMPARE(args[0], "-1,1,newroom");
+  QTRY_VERIFY(!pushed_req.isEmpty());
+  QCOMPARE(pushed_req, QStringLiteral("-1,1,newroom"));
   QVERIFY(room->isStarted());
 
   // 关于startGame后续的测试...
