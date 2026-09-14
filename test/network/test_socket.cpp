@@ -59,21 +59,21 @@ void TestSocket::testSendMessages() {
   QSignalSpy spy(client_server, &ClientSocket::message_got);
   QVariantList arguments;
 
-  client->send(msg);
+  client->send(QCborArray{msg}.toCborValue().toCbor());
   QThread::msleep(100);
   qApp->processEvents();
   QCOMPARE(spy.count(), 1);
   arguments = spy.takeFirst();
-  QCOMPARE(arguments.at(0).toByteArray(), msg);
+  QCOMPARE(arguments.at(0).value<QCborArray>().at(0).toByteArray(), msg);
 
-  // compressed
+  // 超长消息 至少底层收发不该出问题
   spy.clear();
-  client->send(long_msg);
+  client->send(QCborArray{long_msg}.toCborValue().toCbor());
   QThread::msleep(100);
   qApp->processEvents();
   QCOMPARE(spy.count(), 1);
   arguments = spy.takeFirst();
-  QCOMPARE(arguments.at(0).toByteArray(), long_msg);
+  QCOMPARE(arguments.at(0).value<QCborArray>().at(0).toByteArray(), long_msg);
 }
 
 void TestSocket::testEncryptedMessages() {
@@ -95,12 +95,12 @@ void TestSocket::testEncryptedMessages() {
   QVERIFY(client->aesReady());
 
   client_server->installAESKey(aeskey);
-  client->send(msg);
+  client->send(QCborArray{msg}.toCborValue().toCbor());
   QThread::msleep(100);
   qApp->processEvents();
   QCOMPARE(spy.count(), 1);
   arguments = spy.takeFirst();
-  QCOMPARE(arguments.at(0).toByteArray(), msg);
+  QCOMPARE(arguments.at(0).value<QCborArray>().at(0).toByteArray(), msg);
 }
 
 void TestSocket::cleanupTestCase() {

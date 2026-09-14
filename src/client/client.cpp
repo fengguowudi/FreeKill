@@ -123,15 +123,13 @@ void Client::setLoginInfo(const QString &username, const QString &password) {
 void Client::replyToServer(const QString &command, const QVariant &jsonData) {
   int type = Router::TYPE_REPLY | Router::SRC_CLIENT | Router::DEST_SERVER;
 
-  QVariant v;
+  QVariant v = jsonData;
 #ifndef FK_SERVER_ONLY
   auto data = jsonData.value<QJSValue>();
   if (!data.isUndefined()) {
     auto qmlEngine = Backend->getEngine();
     const auto jsonValue = qmlEngine->fromScriptValue<QJsonValue>(data);
     v = jsonValue.toVariant();
-  } else {
-    v = jsonData;
   }
 #endif
 
@@ -142,15 +140,13 @@ void Client::notifyServer(const QString &command, const QVariant &jsonData) {
   int type =
       Router::TYPE_NOTIFICATION | Router::SRC_CLIENT | Router::DEST_SERVER;
 
-  QVariant v;
+  QVariant v = jsonData;
 #ifndef FK_SERVER_ONLY
   auto data = jsonData.value<QJSValue>();
   if (!data.isUndefined()) {
     auto qmlEngine = Backend->getEngine();
     const auto jsonValue = qmlEngine->fromScriptValue<QJsonValue>(data);
     v = jsonValue.toVariant();
-  } else {
-    v = jsonData;
   }
 #endif
 

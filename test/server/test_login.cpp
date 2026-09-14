@@ -45,8 +45,8 @@ void TestLogin::testConnectToServer() {
   qApp->processEvents(); // 让client处理
   QCOMPARE(spy2.count(), 1); // 应该是发出一条Setup
   args = spy2.takeFirst();
-  auto setup_data = QJsonDocument::fromJson(args[0].toString().toUtf8()).array();
-  setup_data = QJsonDocument::fromJson(setup_data[3].toString().toUtf8()).array();
+  auto setup_packet = QCborValue::fromCbor(args[0].toByteArray()).toArray();
+  auto setup_data = QCborValue::fromCbor(setup_packet[3].toByteArray()).toArray();
   // 格式应该是 [用户名，密文，md5，版本，uuid]
   QCOMPARE(setup_data.count(), 5);
   QCOMPARE(setup_data[0].toString(), test_name);
@@ -54,19 +54,17 @@ void TestLogin::testConnectToServer() {
   QCOMPARE(setup_data[3].toString(), FK_VERSION);
 
   // 然后应该是收到:
-  // InstallKey, Setup, SetServerSettings, AddTotalGameTime, EnterLobby, UpdatePlayerNum
+  // Setup, SetServerSettings, AddTotalGameTime, EnterLobby, UpdatePlayerNum
   // 显示房间列表由UI发起，建立连接时只有上述5条才是
-  while (spy.count() < 6) QVERIFY(spy.wait(1000));
-  QCOMPARE(spy.count(), 6);
-  args = spy.takeFirst();
-  QCOMPARE(args[0].toString(), "InstallKey");
+  while (spy.count() < 5) QVERIFY(spy.wait(1000));
+  QCOMPARE(spy.count(), 5);
   args = spy.takeFirst();
   QCOMPARE(args[0].toString(), "Setup");
-  setup_data = QJsonDocument::fromJson(args[1].toString().toUtf8()).array();
+  auto login_data = QCborValue::fromCbor(args[1].toByteArray()).toArray();
   // 格式应该是 [id，用户名，头像，延迟]
-  QCOMPARE(setup_data.count(), 4);
-  QCOMPARE(setup_data[0].type(), QJsonValue::Double);
-  QCOMPARE(setup_data[1].toString(), test_name);
+  QCOMPARE(login_data.count(), 4);
+  QVERIFY(login_data[0].isInteger());
+  QCOMPARE(login_data[1].toString(), test_name);
   args = spy.takeFirst();
   QCOMPARE(args[0].toString(), "SetServerSettings");
   args = spy.takeFirst();
@@ -94,9 +92,9 @@ void TestLogin::testPasswordError() {
   QVERIFY(spy.wait(100)); qApp->processEvents(); // 发Setup
   spy.clear();
   // 然后应该是收到:
-  // InstallKey, ErrorDlg
-  while (spy.count() < 2) QVERIFY(spy.wait(100));
-  QCOMPARE(spy.count(), 2);
+  // ErrorDlg
+  while (spy.count() < 1) QVERIFY(spy.wait(100));
+  QCOMPARE(spy.count(), 1);
   args = spy.takeLast();
   QCOMPARE(args[0].toString(), "ErrorDlg");
   qApp->processEvents();

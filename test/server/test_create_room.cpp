@@ -37,8 +37,8 @@ void TestRoom::testCreateRoom() {
   QSignalSpy spy3(client3->getRouter(), &Router::notification_got);
   QVariantList args;
 
-  client->notifyServer("CreateRoom", JsonArray2Bytes({
-    "test_room1", 2, 90, room_config,
+  client->notifyServer("CreateRoom", QVariantList({
+    QStringLiteral("test_room1"), 2, 90, room_config.toVariantMap(),
   }));
 
   // Server应该发回以下几个包：
@@ -49,22 +49,27 @@ void TestRoom::testCreateRoom() {
   if (spy3.count() == 0) QVERIFY(spy3.wait());
   while (spy.count() < 3) QVERIFY(spy.wait());
   args = spy.takeFirst();
-  auto arr = QJsonDocument::fromJson(args[1].toString().toUtf8()).array();
+  auto arr = QCborValue::fromCbor(args[1].toByteArray()).toArray();
   QCOMPARE(arr.count(), 3);
-  QCOMPARE(arr[0].toInt(), 2);
-  QCOMPARE(arr[1].toInt(), 90);
-  QCOMPARE(arr[2], room_config);
+  QCOMPARE(arr[0].toInteger(), qint64(2));
+  QCOMPARE(arr[1].toInteger(), qint64(90));
+  QCOMPARE(arr[2].toMap(), QCborMap::fromJsonObject(room_config));
   args = spy.takeFirst();
   QCOMPARE(args[0].toString(), "UpdateGameData");
   args = spy.takeFirst();
   QCOMPARE(args[0].toString(), "RoomOwner");
-  QCOMPARE(args[1].toString(), QString("[%1]").arg(client->getSelf()->getId()));
+  auto owner_arr = QCborValue::fromCbor(args[1].toByteArray()).toArray();
+  QCOMPARE(owner_arr[0].toInteger(), qint64(client->getSelf()->getId()));
   args = spy2.takeFirst();
   QCOMPARE(args[0].toString(), "UpdatePlayerNum");
-  QCOMPARE(args[1].toString(), "[2,3]");
+  auto num_arr = QCborValue::fromCbor(args[1].toByteArray()).toArray();
+  QCOMPARE(num_arr[0].toInteger(), qint64(2));
+  QCOMPARE(num_arr[1].toInteger(), qint64(3));
   args = spy3.takeFirst();
   QCOMPARE(args[0].toString(), "UpdatePlayerNum");
-  QCOMPARE(args[1].toString(), "[2,3]");
+  num_arr = QCborValue::fromCbor(args[1].toByteArray()).toArray();
+  QCOMPARE(num_arr[0].toInteger(), qint64(2));
+  QCOMPARE(num_arr[1].toInteger(), qint64(3));
 
   // 然后检查Server端的数据，应该是创建了RoomThread，创建了Room
   // 并且修改了Room和Lobby中的玩家们

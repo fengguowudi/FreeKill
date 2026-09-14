@@ -44,14 +44,14 @@ void TestScheduler::testStartGame() {
   QSignalSpy spy3(client3->getRouter(), &Router::notification_got);
   QVariantList args;
 
-  client->notifyServer("CreateRoom", JsonArray2Bytes({
-    "test_room2", 2, 90, room_config,
+  client->notifyServer("CreateRoom", QVariantList({
+    QStringLiteral("test_room2"), 2, 90, room_config.toVariantMap(),
   }));
 
   // 直接等到spy3收到数据（大厅人数变动） c2加入房间一样的等待
   QVERIFY(spy3.wait());
 
-  client2->notifyServer("EnterRoom", "[1,\"\"]");
+  client2->notifyServer("EnterRoom", QVariantList({1, ""}));
   QVERIFY(spy3.wait());
 
   auto room = ServerInstance->findRoom(1);
@@ -86,23 +86,23 @@ void TestScheduler::testReconnect() {
   client2->connectToHost("localhost", test_port);
   QVERIFY(spy2.wait()); qApp->processEvents(); // 收NetworkDelayTest 发第一个包
   // 然后应该是以下：
-  // InstallKey, Setup, SetServerSettings, Reconnect, RoomOwner (AddSkill系列不管了)
+  // Setup, SetServerSettings, Reconnect, RoomOwner (AddSkill系列不管了)
   // 其中一直wait直到收到RoomOwner包只是为了确保client执行了Lua
   spy2.clear();
-  while (spy2.count() < 5) spy2.wait(100);
-  args = spy2[1];
+  while (spy2.count() < 4) QVERIFY(spy2.wait(1000));
+  args = spy2[0];
   QCOMPARE(args[0].toString(), "Setup");
-  auto setup_data = QJsonDocument::fromJson(args[1].toString().toUtf8()).array();
+  auto setup_data = QCborValue::fromCbor(args[1].toByteArray()).toArray();
   // 格式应该是 [id，用户名，头像，延迟] 只检查是不是设置延迟了（一定要有）
   QCOMPARE(setup_data.count(), 4);
-  args = spy2[3];
+  args = spy2[2];
   QCOMPARE(args[0].toString(), "Reconnect");
 }
 
 void TestScheduler::testObserve() {
   auto client = clients[0], client2 = clients[1], client3 = clients[2];
   QSignalSpy spy3(client3->getRouter(), &Router::notification_got);
-  client3->notifyServer("ObserveRoom", "[1,\"\"]");
+  client3->notifyServer("ObserveRoom", QVariantList({1, ""}));
   QVERIFY(spy3.wait());
   qApp->processEvents();
 }
