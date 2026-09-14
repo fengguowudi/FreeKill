@@ -156,6 +156,8 @@ jobs:
     name: Release IPA
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - name: Checkout Git Repo
       uses: actions/checkout@v3
@@ -182,6 +184,6 @@ jobs:
     - name: Upload Release IPA
       uses: softprops/action-gh-release@v1
       with:
-        token: ${{ secrets.MY_TOKEN }}
+        token: ${{ secrets.MY_TOKEN || secrets.GITHUB_TOKEN }}
         tag_name: ${{ steps.previoustag.outputs.tag }}
         files: ipa/FreeKill-${{ steps.previoustag.outputs.tag }}-unsigned.ipa
