@@ -58,8 +58,11 @@ void TestScheduler::testStartGame() {
   // pushRequest由服务端线程发出，QSignalSpy跨线程捕捉信号不可靠（会偶发漏信号），
   // 改用queued连接的lambda接收
   QString pushed_req;
-  connect(thread, &RoomThread::pushRequest, this,
-          [&pushed_req](const QString &req) { pushed_req = req; });
+  auto conn = connect(thread, &RoomThread::pushRequest, this,
+                      [&pushed_req](const QString &req) { pushed_req = req; });
+  // 连接挂在this上，而pushed_req是本函数的栈变量；函数退出后连接还在的话
+  // 后续reconnect/observe再触发pushRequest就会写悬挂引用，所以退出时务必断开
+  const auto conn_guard = qScopeGuard([&] { disconnect(conn); });
 
   // 下一步c1发出StartGame命令
   client->notifyServer("StartGame", "");
